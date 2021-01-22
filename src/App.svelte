@@ -1,33 +1,51 @@
 <script>
-  export let name;
+  import {repairs} from './store';
+
+  import Repair from './Repair.svelte';
+  import Controls from './Controls.svelte';
+
+  import {v4 as uuidv4} from 'uuid';
+  import {concat, chunk} from 'lodash';
+
+  let description = '';
+  let currentPage = 0;
+
+  const addItem = e => {
+    e.preventDefault();
+
+    if (description !== '') {
+      repairs.set(
+        concat($repairs, {id: uuidv4(), description, completed: false})
+      );
+
+      description = '';
+    }
+  };
+
+  $: pages = chunk($repairs, 5)[currentPage] || [];
+  $: localStorage.setItem('repairs', JSON.stringify($repairs));
 </script>
 
-<main>
-  <h1>Hello {name}!</h1>
-  <p>
-    Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn
-    how to build Svelte apps.
-  </p>
-</main>
-
-<style>
-  main {
-    text-align: center;
-    padding: 1em;
-    max-width: 240px;
-    margin: 0 auto;
-  }
-
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 4em;
-    font-weight: 100;
-  }
-
-  @media (min-width: 640px) {
-    main {
-      max-width: none;
-    }
-  }
-</style>
+<section class="fixmeapp">
+  <header class="header">
+    <h1>rep🔥irs</h1>
+    <form on:submit={addItem}>
+      <input
+        class="new-repair"
+        placeholder="What needs to be repaired?"
+        bind:value={description}
+        autofocus="true"
+      />
+    </form>
+  </header>
+  <section class="main">
+    <ul class="repair-list">
+      {#each pages as repair (repair.id)}
+        <Repair {...repair} />
+      {/each}
+    </ul>
+  </section>
+  <footer class="footer">
+    <Controls />
+  </footer>
+</section>
